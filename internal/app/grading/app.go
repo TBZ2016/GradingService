@@ -39,7 +39,6 @@ func NewApp() *App {
 
 // Run starts the grading application.
 func (a *App) Run() {
-	// Perform any additional startup logic if needed.
 	fmt.Println("Grading service is running.")
 
 	// Start the server.

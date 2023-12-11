@@ -17,10 +17,10 @@ RUN go mod download
 COPY . .
 
 # Build the Go application
-RUN go build -o grading-service ./cmd/grading-service
+RUN go build -o gradingservice ./cmd/main
 
 # Expose the port the application runs on
 EXPOSE 8080
 
 # Command to run the application
-CMD ["./grading-service"]
+CMD ["./gradingservice"]
