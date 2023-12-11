@@ -1,5 +1,8 @@
 Feature: Grading Service
 
+  Background:
+    Given there is a grading service
+
   Scenario: Retrieve grades by cursus ID
     Given a cursus ID
     When the user requests grades for the given cursus ID

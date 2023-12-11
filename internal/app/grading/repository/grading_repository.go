@@ -48,6 +48,7 @@ func (r *GradingRepository) Create(grade *model.Grade) error {
 	defer cancel()
 
 	_, err := r.collection.InsertOne(ctx, grade)
+
 	if err != nil {
 		return err
 	}
