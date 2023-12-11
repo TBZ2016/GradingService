@@ -1,26 +1,15 @@
-# Dockerfile
-
-# Use the official Golang image as the base image
-FROM golang:latest
-
-# Set the working directory inside the container
-WORKDIR /app
-
-# Copy the go.mod and go.sum files to the working directory
-COPY go.mod .
-COPY go.sum .
-
-# Download and install Go module dependencies
-RUN go mod download
-
-# Copy the rest of the application code to the working directory
+# Build stage
+FROM golang:latest AS builder
+WORKDIR /go/src/app
 COPY . .
+RUN go get -d -v ./...
+RUN go build -o /go/bin/app ./cmd
 
-# Build the Go application
-RUN go build -o gradingservice ./cmd/main
-
-# Expose the port the application runs on
+# Final stage
+FROM alpine:latest
+RUN apk --no-cache add ca-certificates
+WORKDIR /app
+COPY --from=builder /go/bin .
+ENTRYPOINT ./app
+LABEL Name=gradingservice Version=0.0.1
 EXPOSE 8080
-
-# Command to run the application
-CMD ["./gradingservice"]
