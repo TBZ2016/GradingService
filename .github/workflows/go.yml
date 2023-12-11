@@ -1,16 +1,15 @@
 name: Go CI with Docker Hub and OpenShift Deployment
 
 env:
-  DOCKER_USERNAME: mahmed0 # Your Docker Hub username
-  DOCKER_IMAGE_NAME: kawa-assignment-service # The repository name on Docker Hub
-  APP_NAME: kawaassignmentservice # The application name in OpenShift
+  DOCKER_USERNAME: tbz2016 # Your Docker Hub username
+  DOCKER_IMAGE_NAME: kawa-grading-service # The repository name on Docker Hub
+  APP_NAME: kawagradingservice # The application name in OpenShift
   IMAGE_TAG: ${{ github.sha }} # Unique tag per commit
 
 on:
   push:
     branches:
     - master
-    - testingopenshift
 
 jobs:
   build-and-test:
