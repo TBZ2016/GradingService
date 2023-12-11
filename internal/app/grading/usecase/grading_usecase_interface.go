@@ -3,17 +3,11 @@ package usecase
 import "kawa/gradingservice/internal/app/grading/model"
 
 type GradingUseCaseInterface interface {
-	GetByCursusID(cursusID int) ([]model.Grade, error)
-
-	CreateGrade(gradeDTO *model.GradeDTO) error
-
-	GetByStudentID(studentID int) ([]model.Grade, error)
-
-	GetByClass(classID int) ([]model.Grade, error)
-
+	GetGradesByCursusID(cursusID int) ([]model.Grade, error)
+	CreateGrade(grade *model.Grade) error
+	GetGradesByStudentID(studentID int) ([]model.Grade, error)
+	GetGradesByClass(classID int) ([]model.Grade, error)
 	GetGradeByID(gradeID int) (*model.Grade, error)
-
-	UpdateGrade(gradeDTO *model.GradeDTO) error
-
+	UpdateGrade(grade *model.Grade) error
 	DeleteGradeByID(gradeID int) error
 }

@@ -6,39 +6,39 @@ import (
 )
 
 type GradingUseCase struct {
-	gradingRepository repository.GradingRepository
+	gradingRepo repository.GradingRepositoryInterface
 }
 
-func NewGradingUseCase(gradingRepository repository.GradingRepository) *GradingUseCase {
+func NewGradingUseCase(repo repository.GradingRepositoryInterface) *GradingUseCase {
 	return &GradingUseCase{
-		gradingRepository: gradingRepository,
+		gradingRepo: repo,
 	}
 }
 
 func (uc *GradingUseCase) GetGradesByCursusID(cursusID int) ([]model.Grade, error) {
-	return uc.gradingRepository.GetByCursusID(cursusID)
+	return uc.gradingRepo.GetByCursusID(cursusID)
 }
 
 func (uc *GradingUseCase) CreateGrade(grade *model.Grade) error {
-	return uc.gradingRepository.Create(grade)
+	return uc.gradingRepo.Create(grade)
 }
 
 func (uc *GradingUseCase) GetGradesByStudentID(studentID int) ([]model.Grade, error) {
-	return uc.gradingRepository.GetByStudentID(studentID)
+	return uc.gradingRepo.GetByStudentID(studentID)
 }
 
 func (uc *GradingUseCase) GetGradesByClass(classID int) ([]model.Grade, error) {
-	return uc.gradingRepository.GetByClass(classID)
+	return uc.gradingRepo.GetByClass(classID)
 }
 
 func (uc *GradingUseCase) GetGradeByID(gradeID int) (*model.Grade, error) {
-	return uc.gradingRepository.GetById(gradeID)
+	return uc.gradingRepo.GetById(gradeID)
 }
 
 func (uc *GradingUseCase) UpdateGrade(grade *model.Grade) error {
-	return uc.gradingRepository.Update(grade)
+	return uc.gradingRepo.Update(grade)
 }
 
 func (uc *GradingUseCase) DeleteGradeByID(gradeID int) error {
-	return uc.gradingRepository.DeleteById(gradeID)
+	return uc.gradingRepo.DeleteById(gradeID)
 }

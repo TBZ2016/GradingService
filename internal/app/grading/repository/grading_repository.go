@@ -17,7 +17,7 @@ type GradingRepository struct {
 	collection *mongo.Collection
 }
 
-func NewGradingMongoDBRepository(db *mongo.Database) *GradingRepository {
+func NewGradingRepository(db *mongo.Database) *GradingRepository {
 	return &GradingRepository{
 		collection: db.Collection("grades"),
 	}

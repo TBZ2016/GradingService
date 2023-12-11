@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
+	"kawa/gradingservice/internal/app/grading"
 	"kawa/gradingservice/internal/app/grading/dal"
-
 	"log"
 	"os"
 	"os/signal"
@@ -21,11 +21,11 @@ func main() {
 	defer dal.Close()
 
 	// Create grading service instance
-	gradingService := grading.NewGradingService()
+	gradingService := grading.NewApp()
 
 	// Start the grading service
 	go func() {
-		if err := gradingService.Start(); err != nil {
+		if err := gradingService.Run(); err != nil {
 			log.Fatal("Failed to start grading service:", err)
 		}
 	}()

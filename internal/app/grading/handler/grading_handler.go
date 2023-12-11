@@ -11,10 +11,10 @@ import (
 )
 
 type GradingHandler struct {
-	gradingUseCase usecase.GradingUseCase
+	gradingUseCase usecase.GradingUseCaseInterface
 }
 
-func NewGradingHandler(useCase usecase.GradingUseCase) *GradingHandler {
+func NewGradingHandler(useCase usecase.GradingUseCaseInterface) *GradingHandler {
 	return &GradingHandler{
 		gradingUseCase: useCase,
 	}
