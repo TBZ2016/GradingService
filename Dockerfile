@@ -1,15 +1,18 @@
-# Build stage
-FROM golang:latest AS builder
-WORKDIR /go/src/app
-COPY . .
-RUN go get -d -v ./...
-RUN go build -o /go/bin/app ./cmd
+# Use the official Golang image as the base image
+FROM golang:latest
 
-# Final stage
-FROM alpine:latest
-RUN apk --no-cache add ca-certificates
+# Set the working directory inside the container
 WORKDIR /app
-COPY --from=builder /go/bin .
-ENTRYPOINT ./app
-LABEL Name=gradingservice Version=0.0.1
+
+# Copy the Go application files into the container
+COPY . .
+
+# Build the Go application
+RUN go build -o main ./cmd
+
+# Expose the port that your application is listening on
 EXPOSE 8080
+
+# Command to run the executable
+CMD ["./main"]
+
