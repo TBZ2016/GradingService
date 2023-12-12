@@ -1,6 +1,7 @@
 package server
 
 import (
+	"strconv"
 	"github.com/gin-gonic/gin"
 )
 
@@ -22,7 +23,7 @@ func NewServer(config Config) *Server {
 }
 
 func (s *Server) Start() error {
-	return s.Router.Run(":" + string(rune(s.config.Port)))
+	return s.Router.Run(":" + strconv.Itoa(s.config.Port))
 }
 
 func (s *Server) AddMiddleware(middleware gin.HandlerFunc) {

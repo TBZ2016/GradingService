@@ -9,23 +9,18 @@ import (
 	"kawa/gradingservice/pkg/server"
 )
 
-// App represents the grading application.
 type App struct {
 	Server *server.Server
 }
 
-// NewApp creates a new instance of the grading application.
 func NewApp() *App {
-	// Perform any initialization or setup here.
 
-	// Create repository and use case instances.
 	gradingRepo := repository.NewGradingRepository(dal.GetDatabase())
 	gradingUseCase := usecase.NewGradingUseCase(gradingRepo)
 	gradingHandler := handler.NewGradingHandler(gradingUseCase)
 
-	// Create a new server instance.
 	serverConfig := server.Config{
-		Port: 8080, // Set your desired port number.
+		Port: 8080,
 	}
 
 	server := server.NewServer(serverConfig)
@@ -37,11 +32,9 @@ func NewApp() *App {
 	}
 }
 
-// Run starts the grading application.
 func (a *App) Run() {
 	fmt.Println("Grading service is running.")
 
-	// Start the server.
 	if err := a.Server.Start(); err != nil {
 		fmt.Printf("Failed to start the server: %v\n", err)
 	}
