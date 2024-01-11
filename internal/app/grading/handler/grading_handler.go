@@ -2,12 +2,12 @@ package handler
 
 import (
 	"net/http"
-	"strconv"
 
 	"kawa/gradingservice/internal/app/grading/model"
 	"kawa/gradingservice/internal/app/grading/usecase"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type GradingHandler struct {
@@ -19,23 +19,29 @@ func NewGradingHandler(useCase usecase.GradingUseCaseInterface) *GradingHandler 
 		gradingUseCase: useCase,
 	}
 }
+
 func (h *GradingHandler) GetGradesByCursusID(c *gin.Context) {
-	cursusID, err := strconv.Atoi(c.Param("cursusId"))
+	cursusIDStr := c.Param("cursusId")
+	cursusID, err := uuid.Parse(cursusIDStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid cursus ID"})
 		return
 	}
 
-	grades, err := h.gradingUseCase.GetGradesByCursusID(cursusID)
+	grades, err := h.gradingUseCase.GetGradesByCursusID(cursusID.String())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(grades) == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "No grades found for the specified student ID"})
 		return
 	}
 
 	c.JSON(http.StatusOK, grades)
 }
 
-// CreateGrade handles the creation of a new grade.
 func (h *GradingHandler) CreateGrade(c *gin.Context) {
 	var grade model.Grade
 	if err := c.ShouldBindJSON(&grade); err != nil {
@@ -52,49 +58,59 @@ func (h *GradingHandler) CreateGrade(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": "Grade created"})
 }
 
-// GetGradesByStudentID handles the retrieval of grades by student ID.
 func (h *GradingHandler) GetGradesByStudentID(c *gin.Context) {
-	studentID, err := strconv.Atoi(c.Param("studentId"))
+	studentIDStr := c.Param("studentId")
+	studentID, err := uuid.Parse(studentIDStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid student ID"})
 		return
 	}
 
-	grades, err := h.gradingUseCase.GetGradesByStudentID(studentID)
+	grades, err := h.gradingUseCase.GetGradesByStudentID(studentID.String())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(grades) == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "No grades found for the specified student ID"})
 		return
 	}
 
 	c.JSON(http.StatusOK, grades)
 }
 
-// GetGradesByClass handles the retrieval of grades by class.
 func (h *GradingHandler) GetGradesByClass(c *gin.Context) {
-	classID, err := strconv.Atoi(c.Param("class"))
+	classIDStr := c.Param("classId")
+	classID, err := uuid.Parse(classIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid class ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Class ID is not a GUID"})
 		return
 	}
 
-	grades, err := h.gradingUseCase.GetGradesByClass(classID)
+	grades, err := h.gradingUseCase.GetGradesByClass(classID.String())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(grades) == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "No grades found for the specified class ID"})
 		return
 	}
 
 	c.JSON(http.StatusOK, grades)
 }
 
-// GetGradeByID handles the retrieval of a grade by ID.
 func (h *GradingHandler) GetGradeByID(c *gin.Context) {
-	gradeID, err := strconv.Atoi(c.Param("gradeId"))
+	gradeIDStr := c.Param("gradeId")
+	gradeID, err := uuid.Parse(gradeIDStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid grade ID"})
 		return
 	}
 
-	grade, err := h.gradingUseCase.GetGradeByID(gradeID)
+	grade, err := h.gradingUseCase.GetGradeByID(gradeID.String())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -108,13 +124,17 @@ func (h *GradingHandler) GetGradeByID(c *gin.Context) {
 	c.JSON(http.StatusOK, grade)
 }
 
-// UpdateGrade handles the update of an existing grade.
 func (h *GradingHandler) UpdateGrade(c *gin.Context) {
+	gradeID := c.Param("gradeId")
+
 	var updatedGrade model.Grade
 	if err := c.ShouldBindJSON(&updatedGrade); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	// Set the gradeId from the URL parameter
+	updatedGrade.GradeID = gradeID
 
 	err := h.gradingUseCase.UpdateGrade(&updatedGrade)
 	if err != nil {
@@ -125,19 +145,19 @@ func (h *GradingHandler) UpdateGrade(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Grade updated"})
 }
 
-// DeleteGradeByID handles the deletion of a grade by ID.
 func (h *GradingHandler) DeleteGradeByID(c *gin.Context) {
-	gradeID, err := strconv.Atoi(c.Param("gradeId"))
+	gradeIDStr := c.Param("gradeId")
+	gradeID, err := uuid.Parse(gradeIDStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid grade ID"})
 		return
 	}
 
-	err = h.gradingUseCase.DeleteGradeByID(gradeID)
+	err = h.gradingUseCase.DeleteGradeByID(gradeID.String())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusNoContent, gin.H{"message": "Grade deleted"})
+	c.JSON(http.StatusNoContent, gin.H{"message": "Grade deleted", "gradeId": gradeID.String()})
 }

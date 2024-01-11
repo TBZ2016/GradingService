@@ -23,11 +23,11 @@ func NewGradingRepository(db *mongo.Database) *GradingRepository {
 	}
 }
 
-func (r *GradingRepository) GetByCursusID(cursusID int) ([]model.Grade, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func (r *GradingRepository) GetByCursusID(cursusID string) ([]model.Grade, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	filter := bson.M{"courseId": cursusID}
+	filter := bson.M{"courseid": cursusID}
 
 	cursor, err := r.collection.Find(ctx, filter)
 	if err != nil {
@@ -44,7 +44,7 @@ func (r *GradingRepository) GetByCursusID(cursusID int) ([]model.Grade, error) {
 }
 
 func (r *GradingRepository) Create(grade *model.Grade) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	_, err := r.collection.InsertOne(ctx, grade)
@@ -56,11 +56,11 @@ func (r *GradingRepository) Create(grade *model.Grade) error {
 	return nil
 }
 
-func (r *GradingRepository) GetByStudentID(studentID int) ([]model.Grade, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func (r *GradingRepository) GetByStudentID(studentID string) ([]model.Grade, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	filter := bson.M{"studentId": studentID}
+	filter := bson.M{"studentid": studentID}
 
 	cursor, err := r.collection.Find(ctx, filter)
 	if err != nil {
@@ -76,12 +76,12 @@ func (r *GradingRepository) GetByStudentID(studentID int) ([]model.Grade, error)
 	return grades, nil
 }
 
-func (r *GradingRepository) GetByClass(classID int) ([]model.Grade, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func (r *GradingRepository) GetByClass(classID string) ([]model.Grade, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	// Assuming you have a class field in your Grade struct
-	filter := bson.M{"class": classID}
+	filter := bson.M{"classid": classID}
 
 	cursor, err := r.collection.Find(ctx, filter)
 	if err != nil {
@@ -97,11 +97,11 @@ func (r *GradingRepository) GetByClass(classID int) ([]model.Grade, error) {
 	return grades, nil
 }
 
-func (r *GradingRepository) GetById(gradeID int) (*model.Grade, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func (r *GradingRepository) GetById(gradeID string) (*model.Grade, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	filter := bson.M{"gradeId": gradeID}
+	filter := bson.M{"gradeid": gradeID}
 
 	var grade model.Grade
 	err := r.collection.FindOne(ctx, filter).Decode(&grade)
@@ -116,10 +116,10 @@ func (r *GradingRepository) GetById(gradeID int) (*model.Grade, error) {
 }
 
 func (r *GradingRepository) Update(grade *model.Grade) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	filter := bson.M{"gradeId": grade.GradeID}
+	filter := bson.M{"gradeid": grade.GradeID}
 	update := bson.M{"$set": grade}
 
 	_, err := r.collection.UpdateOne(ctx, filter, update)
@@ -130,11 +130,11 @@ func (r *GradingRepository) Update(grade *model.Grade) error {
 	return nil
 }
 
-func (r *GradingRepository) DeleteById(gradeID int) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func (r *GradingRepository) DeleteById(gradeID string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	filter := bson.M{"gradeId": gradeID}
+	filter := bson.M{"gradeid": gradeID}
 
 	result, err := r.collection.DeleteOne(ctx, filter)
 	if err != nil {

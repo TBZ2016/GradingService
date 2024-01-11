@@ -11,20 +11,22 @@ import (
 )
 
 func main() {
-
-	err := dal.Initialize("mongodb://localhost:27017", "gradingdb")
+	// Initialize MongoDB
+	err := dal.Initialize("mongodb://localhost:27017/", "GradingService")
 	if err != nil {
 		log.Fatal("Failed to initialize MongoDB:", err)
 	}
-
 	defer dal.Close()
 
+	// Initialize grading service
 	gradingService := grading.NewApp()
 
+	// Start grading service
 	go func() {
 		gradingService.Run()
 	}()
 
+	// Wait for shutdown signal
 	waitForShutdown()
 
 	fmt.Println("Grading service gracefully shut down.")

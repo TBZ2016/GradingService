@@ -14,7 +14,6 @@ type App struct {
 }
 
 func NewApp() *App {
-
 	gradingRepo := repository.NewGradingRepository(dal.GetDatabase())
 	gradingUseCase := usecase.NewGradingUseCase(gradingRepo)
 	gradingHandler := handler.NewGradingHandler(gradingUseCase)
@@ -41,11 +40,11 @@ func (a *App) Run() {
 }
 
 func setupRoutes(s *server.Server, gradingHandler *handler.GradingHandler) {
-	s.Router.GET("/grades/cursus/:cursusID", gradingHandler.GetGradesByCursusID)
+	s.Router.GET("/grades/cursus/:cursusId", gradingHandler.GetGradesByCursusID)
 	s.Router.POST("/grades", gradingHandler.CreateGrade)
-	s.Router.GET("/grades/student/:studentID", gradingHandler.GetGradesByStudentID)
-	s.Router.GET("/grades/class/:classID", gradingHandler.GetGradesByClass)
-	s.Router.GET("/grades/:gradeID", gradingHandler.GetGradeByID)
-	s.Router.PUT("/grades/:gradeID", gradingHandler.UpdateGrade)
-	s.Router.DELETE("/grades/:gradeID", gradingHandler.DeleteGradeByID)
+	s.Router.GET("/grades/student/:studentId", gradingHandler.GetGradesByStudentID)
+	s.Router.GET("/grades/class/:classId", gradingHandler.GetGradesByClass)
+	s.Router.GET("/grades/:gradeId", gradingHandler.GetGradeByID)
+	s.Router.PUT("/grades/:gradeId", gradingHandler.UpdateGrade)
+	s.Router.DELETE("/grades/:gradeId", gradingHandler.DeleteGradeByID)
 }

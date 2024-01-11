@@ -3,12 +3,13 @@ package model
 import "time"
 
 type Grade struct {
-	GradeID      int       `json:"gradeId"`
-	StudentID    int       `json:"studentId"`
-	TeacherID    int       `json:"teacherId"`
-	AssignmentID int       `json:"assignmentId"`
+	GradeID      string    `json:"gradeId"`
+	StudentID    string    `json:"studentId"`
+	TeacherID    string    `json:"teacherId"`
+	AssignmentID string    `json:"assignmentId"`
 	CreatedAt    time.Time `json:"createdAt"`
-	CourseID     int       `json:"courseId"`
+	CourseID     string    `json:"courseId"`
 	Grade        int       `json:"grade"`
 	IsPass       bool      `json:"isPass"`
+	ClassID      string    `json:"classId"`
 }

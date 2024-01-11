@@ -14,7 +14,6 @@ var (
 	database *mongo.Database
 )
 
-// Initialize initializes the MongoDB client and connects to the database.
 func Initialize(connectionString, dbName string) error {
 	clientOptions := options.Client().ApplyURI(connectionString)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -31,12 +30,10 @@ func Initialize(connectionString, dbName string) error {
 	return nil
 }
 
-// GetDatabase returns the MongoDB database instance.
 func GetDatabase() *mongo.Database {
 	return database
 }
 
-// Close closes the MongoDB client when it's no longer needed.
 func Close() {
 	if client != nil {
 		client.Disconnect(context.Background())

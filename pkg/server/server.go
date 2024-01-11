@@ -2,12 +2,12 @@ package server
 
 import (
 	"strconv"
+
 	"github.com/gin-gonic/gin"
 )
 
 type Config struct {
 	Port int
-	// Add any other configuration options as needed
 }
 
 type Server struct {
