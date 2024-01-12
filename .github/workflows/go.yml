@@ -67,3 +67,141 @@ jobs:
 
     - name: Check Rollout Status
       run: oc rollout status deployment/${{ env.APP_NAME }}
+
+      name: .NET CI with Docker Hub and OpenShift Deployment
+
+env:
+  DOCKER_USERNAME: tbz2016 # Docker Hub username
+  DOCKER_IMAGE_NAME: kawa-grading-service # The repository name on Docker Hub
+  APP_NAME: kawagradingservice # The application name in OpenShift
+  IMAGE_TAG: ${{ github.sha }} # Unique tag per commit
+  OPENSHIFT_NAMESPACE: gradingservice # OpenShift namespace
+  APP_PORT: 8080 # The port your application listens on
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.17'
+
+      - name: Build
+        run: go build -o app cmd/main.go
+
+      - name: Unit Tests
+        run: go test -v ./...
+
+  build-and-push:
+    needs: build-and-test
+    name: Build and Push Docker image
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build the Docker image
+        run: docker build -t $DOCKER_USERNAME/$DOCKER_IMAGE_NAME:$IMAGE_TAG .
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Push the Docker image to Docker Hub
+        run: docker push $DOCKER_USERNAME/$DOCKER_IMAGE_NAME:$IMAGE_TAG
+
+  deployment-on-Openshift:
+    needs: build-and-push
+    name: OpenShift Deployment
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Log in to OpenShift
+        uses: redhat-actions/oc-login@v1
+        with:
+          openshift_server_url: ${{ env.OPENSHIFT_SERVER }}
+          openshift_token: ${{ env.OPENSHIFT_TOKEN }}
+          insecure_skip_tls_verify: true
+
+      - name: Create OpenShift Namespace if it doesn't exist
+        run: |
+          if ! oc get project $OPENSHIFT_NAMESPACE; then
+            oc new-project $OPENSHIFT_NAMESPACE
+          else
+            echo "Project $OPENSHIFT_NAMESPACE already exists"
+          fi
+
+      - name: Create Deployment in OpenShift
+        run: |
+          oc apply -f - <<EOF
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: $APP_NAME
+            namespace: $OPENSHIFT_NAMESPACE
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: $APP_NAME
+            template:
+              metadata:
+                labels:
+                  app: $APP_NAME
+              spec:
+                containers:
+                - name: $APP_NAME
+                  image: $DOCKER_USERNAME/$DOCKER_IMAGE_NAME:$IMAGE_TAG
+                  ports:
+                  - containerPort: 8080
+          EOF
+
+      - name: Create Service in OpenShift
+        run: |
+          oc apply -f - <<EOF
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: $APP_NAME
+            namespace: $OPENSHIFT_NAMESPACE
+          spec:
+            selector:
+              app: $APP_NAME
+            ports:
+            - protocol: TCP
+              port: 8080
+              targetPort: 8080
+          EOF
+
+      - name: Create Route in OpenShift
+        run: |
+          oc apply -f - <<EOF
+          apiVersion: route.openshift.io/v1
+          kind: Route
+          metadata:
+            name: $APP_NAME
+            namespace: $OPENSHIFT_NAMESPACE
+          spec:
+            to:
+              kind: Service
+              name: $APP_NAME
+            port:
+              targetPort: 8080
+            tls:
+              termination: edge
+          EOF
+
+      - name: Check Rollout Status
+        run: oc rollout status deployment/$APP_NAME -n $OPENSHIFT_NAMESPACE
