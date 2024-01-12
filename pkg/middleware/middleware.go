@@ -1,5 +1,3 @@
-// middleware/keycloak_service.go
-
 package middleware
 
 import (
@@ -15,7 +13,6 @@ import (
 	"golang.org/x/oauth2"
 )
 
-// KeycloakService handles interactions with Keycloak for authentication and authorization.
 type KeycloakService struct {
 	IssuerURL    string
 	ClientID     string
@@ -26,7 +23,6 @@ type KeycloakService struct {
 	verifier *oidc.IDTokenVerifier
 }
 
-// NewKeycloakService initializes a new KeycloakService instance.
 func NewKeycloakService(issuerURL, clientID, clientSecret, realm string) *KeycloakService {
 	ks := &KeycloakService{
 		IssuerURL:    issuerURL,
@@ -53,7 +49,6 @@ func NewKeycloakService(issuerURL, clientID, clientSecret, realm string) *Keyclo
 	return ks
 }
 
-// CheckTokenAndRoles checks the validity of the token and the required roles using the Keycloak introspection endpoint.
 func (ks *KeycloakService) CheckTokenAndRoles(roles []string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenString, err := ks.extractTokenFromHeader(c.Request)
@@ -63,7 +58,6 @@ func (ks *KeycloakService) CheckTokenAndRoles(roles []string) gin.HandlerFunc {
 			return
 		}
 
-		// Validate token using introspection endpoint
 		introspectionResponse, err := ks.introspectToken(tokenString)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to validate token"})
@@ -77,7 +71,6 @@ func (ks *KeycloakService) CheckTokenAndRoles(roles []string) gin.HandlerFunc {
 			return
 		}
 
-		// Check if the user has the required roles
 		if !ks.checkRoles(c, roles, introspectionResponse.RealmAccess.Roles) {
 			c.JSON(http.StatusForbidden, gin.H{"error": "Insufficient permissions"})
 			c.Abort()
@@ -92,7 +85,6 @@ func (ks *KeycloakService) extractTokenFromHeader(r *http.Request) (string, erro
 		return "", fmt.Errorf("missing Authorization header")
 	}
 
-	// Trim any leading or trailing whitespaces
 	return strings.TrimSpace(authHeader), nil
 }
 
@@ -132,22 +124,18 @@ func (ks *KeycloakService) introspectToken(tokenString string) (*introspectionRe
 	return &introspectionResponse, nil
 }
 
-// checkRoles checks if the user has the required roles.
 func (ks *KeycloakService) checkRoles(c *gin.Context, requiredRoles, userRoles []string) bool {
-	// Check if the user has at least one of the required roles
 	for _, requiredRole := range requiredRoles {
 		if contains(userRoles, requiredRole) {
 			return true
 		}
 	}
 
-	// Respond with "Insufficient permissions" if roles are not sufficient
 	c.JSON(http.StatusForbidden, gin.H{"error": "Insufficient permissions"})
 	c.Abort()
 	return false
 }
 
-// contains checks if a string is present in a slice of strings.
 func contains(slice []string, value string) bool {
 	for _, item := range slice {
 		if item == value {
@@ -157,12 +145,10 @@ func contains(slice []string, value string) bool {
 	return false
 }
 
-// introspectionResponse is a struct to hold the response from the token introspection endpoint.
 type introspectionResponse struct {
 	Active bool   `json:"active"`
 	Error  string `json:"error"`
 
-	// Additional fields based on the provided JSON structure
 	RealmAccess struct {
 		Roles []string `json:"roles"`
 	} `json:"realm_access"`
