@@ -1,123 +1,66 @@
-// messaging/rabbitmq.go
 package messaging
 
 import (
-	"fmt"
 	"github.com/streadway/amqp"
 )
 
+// RabbitMQ struct to hold the connection and channel
 type RabbitMQ struct {
-	conn *amqp.Connection
+	conn    *amqp.Connection
+	channel *amqp.Channel
 }
 
-func NewRabbitMQ(connectionString string) (*RabbitMQ, error) {
-	conn, err := amqp.Dial(connectionString)
+// Initialize RabbitMQ connection and channel
+func NewRabbitMQ(url string) (*RabbitMQ, error) {
+	conn, err := amqp.Dial(url)
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to RabbitMQ: %v", err)
+		return nil, err
 	}
 
-	return &RabbitMQ{conn: conn}, nil
+	channel, err := conn.Channel()
+	if err != nil {
+		return nil, err
+	}
+
+	return &RabbitMQ{
+		conn:    conn,
+		channel: channel,
+	}, nil
 }
 
-func (rmq *RabbitMQ) Close() {
-	if rmq.conn != nil {
-		rmq.conn.Close()
-	}
-}
-
-// Setup declares an exchange, a queue, and binds them together.
-func (rmq *RabbitMQ) Setup(exchangeName, queueName, routingKey string) error {
-	ch, err := rmq.conn.Channel()
-	if err != nil {
-		return fmt.Errorf("failed to open a channel: %v", err)
-	}
-	defer ch.Close()
-
-	// Declare an exchange
-	err = ch.ExchangeDeclare(
-		exchangeName,
-		"direct", // or "fanout" or "topic" depending on your needs
-		true,
-		false,
-		false,
-		false,
-		nil,
-	)
-	if err != nil {
-		return fmt.Errorf("failed to declare an exchange: %v", err)
-	}
-
-	
-	_, err = ch.QueueDeclare(
-		queueName,
-		true,
-		false,
-		false,
-		false,
-		nil,
-	)
-	if err != nil {
-		return fmt.Errorf("failed to declare a queue: %v", err)
-	}
-
-	err = ch.QueueBind(
-		queueName,
+func (mq *RabbitMQ) Publish(exchange, routingKey string, body []byte) error {
+	err := mq.channel.Publish(
+		exchange,
 		routingKey,
-		exchangeName,
-		false,
-		nil,
-	)
-	if err != nil {
-		return fmt.Errorf("failed to bind queue to exchange: %v", err)
-	}
-
-	return nil
-}
-
-// SendMessage publishes a message to the RabbitMQ exchange.
-func (rmq *RabbitMQ) SendMessage(message []byte, exchangeName, routingKey string) error {
-	ch, err := rmq.conn.Channel()
-	if err != nil {
-		return fmt.Errorf("failed to open a channel: %v", err)
-	}
-	defer ch.Close()
-
-	err = ch.Publish(
-		exchangeName,
-		routingKey,
-		false,
-		false,
+		false, // mandatory
+		false, // immediate
 		amqp.Publishing{
-			ContentType: "text/plain",
-			Body:        message,
+			ContentType: "application/json",
+			Body:        body,
 		},
 	)
-	if err != nil {
-		return fmt.Errorf("failed to publish a message: %v", err)
-	}
-
-	return nil
+	return err
 }
 
-// ConsumeMessages consumes messages from the RabbitMQ queue.
-func (rmq *RabbitMQ) ConsumeMessages(queueName, consumerName string) (<-chan amqp.Delivery, error) {
-	ch, err := rmq.conn.Channel()
-	if err != nil {
-		return nil, fmt.Errorf("failed to open a channel: %v", err)
-	}
-
-	messages, err := ch.Consume(
-		queueName,
-		consumerName,
-		true,
-		false,
-		false,
-		false,
+func (mq *RabbitMQ) Consume(queue, consumer string, handlerFunc func([]byte)) error {
+	msgs, err := mq.channel.Consume(
+		queue,
+		consumer,
+		true,  // auto-acknowledge
+		false, // exclusive
+		false, // no-local
+		false, // no-wait
 		nil,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to consume messages: %v", err)
+		return err
 	}
 
-	return messages, nil
+	go func() {
+		for msg := range msgs {
+			handlerFunc(msg.Body)
+		}
+	}()
+
+	return nil
 }
